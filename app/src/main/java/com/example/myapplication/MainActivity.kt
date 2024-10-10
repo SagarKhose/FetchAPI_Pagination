@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -10,6 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.Model.Movie
 import com.example.myapplication.Model.MovieResponse
 import com.example.myapplication.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -42,8 +47,41 @@ class MainActivity : AppCompatActivity() {
         fetchMovies("marvel", currentPage)
     }
 
-    // Function to fetch movies from the API
     private fun fetchMovies(query: String, page: Int) {
+        isLoading = true
+
+        // Use CoroutineScope to launch the coroutine
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Call the API using Retrofit
+                val response = ApiClient.movieApiService.searchMovies("577eb312", query, page)
+                // Switch to Main thread to update the UI
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful){
+                        response.body()?.let {
+                            movieList.addAll(it.Search)
+                            movieAdapter.notifyDataSetChanged()
+                        }
+                    } else {
+                        // Handle error response (e.g., log or show a message)
+                        Log.e("Error", "Response not successful: ${response.errorBody()?.string()}")
+                    }
+                    // Set loading state to false regardless of success or failure
+                    isLoading = false
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main) {
+                    // Set loading state to false in case of error
+                    isLoading = false
+                    // Optionally show a toast or log the error
+                    Log.e("Error", "Failed to fetch movies: ${e.message}")
+                }
+            }
+        }
+    }
+
+    // Function to fetch movies from the API
+    /*private fun fetchMovies(query: String, page: Int) {
         isLoading = true
         ApiClient.instance.searchMovies("577eb312", query, page).enqueue(object :
             Callback<MovieResponse> {
@@ -62,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 isLoading = false
             }
         })
-    }
+    }*/
 
     // Scroll listener to detect when user scrolls to the end of the list
     private val scrollListener = object : RecyclerView.OnScrollListener() {

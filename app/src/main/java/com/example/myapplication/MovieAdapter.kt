@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.myapplication.Model.Movie
-import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.databinding.RecItemsBinding
 
 class MovieAdapter(private val movies: MutableList<Movie>) : RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
